@@ -33,7 +33,7 @@ str1 = ""
 str2 = ""
 path = ""
 a = 0
-t = 213
+t = 3294
 d = 0
 
 start = time.time()
@@ -48,15 +48,17 @@ for i in data:
         str3 = str2[:-4]
 
         # data storing
+        new_path = "KP/" + str(str1) + "/"
 
         img = cv2.imread('dataset/' + str1 + '/' + str2, 0)
         kp1, des1 = pysift.computeKeypointsAndDescriptors(img)
-        np.savetxt("KP/" + str1 + "_" + str3 + ".txt", des1)
+        np.savetxt(new_path + "_" + str3 + ".txt", des1)
         t = t - 1
         d = d + 1
         end = time.time()
         elapsed_time = end - start
-        print(str1 + "   " + str2 + " Done...  " + str(t) + "Remain...." + " Images Done: "+ str(d) + " Elapsed Time: " + str(elapsed_time))
+        print(str1 + "   " + str2 + " Done...  " + str(t) + " Remain...." + " Images Done: "+ str(d) + " Elapsed Time: "
+              + str(int(elapsed_time)) + "sec  " + "Keypoint count: " + str(len(kp1)))
 
 
 

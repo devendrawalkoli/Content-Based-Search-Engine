@@ -2,13 +2,31 @@ import cv2
 import pysift
 import _pickle as cPickle
 import numpy as np
+import time
 
 
+start = time.time()
 
+img = cv2.imread('dataset/image_0023.jpg', 0)
+
+kp1, des1 = pysift.computeKeypointsAndDescriptors(img)
+
+print("KPS: ")
+print(len(kp1))
+print("DCS: ")
+print(len(des1))
+
+end = time.time()
+
+Time = end - start
+
+print("Time: " + str(Time))
+
+"""""
 new = np.loadtxt("dis.txt").astype('float32')
 print(new)
 
-
+"""
 
 """
 im=cv2.imread("flower.jpg")

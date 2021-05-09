@@ -1,68 +1,118 @@
-
-import _pickle as cPickle
+# import _pickle as cPickle
 import numpy as np
 import cv2
 import pysift
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 import logging
 import os
+import time
+# import multiprocessing as mp
+# from numba import jit, njit
+import numpy as np
+
+import multiprocessing
+from itertools import product
+
 logger = logging.getLogger(__name__)
 
-MIN_MATCH_COUNT = 20
+# MIN_MATCH_COUNT = 8
 kp_name = []
 match = []
+matches = []
 
-def kpmatching(des1,des2,image_name):
+
+def kpmatching(des1, des2, image_name, MIN_MATCH_COUNT, path):
+    global matches
     FLANN_INDEX_KDTREE = 0
     index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
     search_params = dict(checks=50)
     flann = cv2.FlannBasedMatcher(index_params, search_params)
-    matches = flann.knnMatch(des1, des2, k=2)
+    try:
+        matches = flann.knnMatch(des1, des2, k=2)
+    except:
+        pass
+
+    MIN_MATCH = MIN_MATCH_COUNT
 
     # Lowe's ratio test
+
     good = []
     for m, n in matches:
         if m.distance < 0.7 * n.distance:
             good.append(m)
 
-    if len(good) > MIN_MATCH_COUNT:
-        match.append(image_name)
+    path = path.replace("KP", "dataset")
+
+    print("Good: " + str(len(good)))
+
+    if len(good) > MIN_MATCH:
+        match.append(path + image_name)
 
     return match
 
 
+def match_main(des, img_label):
+    t0 = time.time()
+
+    # des1 = np.loadtxt("KP/" + str(des)).astype('float32')
+    t2 = time.time()
+    img = cv2.imread(des, 0)
+    kp1, des1 = pysift.computeKeypointsAndDescriptors(img)
+    print(" Key-points Found: " + str(len(des1)))
+    match_found = 0
+    t3 = time.time() - t2
+    print("Time for KP extraction: " + str(t3))
+    path = "KP/" + str(img_label) + "/"
+    path2 = "KP/" + str(img_label)
+    kp_name.clear()
+    with os.scandir(path2) as entries:
+        for entry in entries:
+            # print(entry.name)
+            kp_name.append(entry.name)
+
+    # print(kp_name)
+
+    min_match = len(des1)
+    if min_match < 10:
+        min_match = len(des1) - 1
+    else:
+        min_match = 8
+
+    print("KP name: ")
+    print(kp_name)
+
+    for i in kp_name:
+        file_size = os.path.getsize(path + str(i))
+        if file_size == 0:
+            pass
+        else:
+            des2 = np.loadtxt(path + str(i)).astype('float32')
+            match_found = kpmatching(des1, des2, i, min_match, path)
+
+    print(" Matched Images: " + str(match_found))
+    t1 = time.time() - t0
+    print("Time for KP Matching: " + str(t1))
+    return match_found
 
 
+"""""
+    else:
+        for i in range(len(folder_name)):
+            path = "KP/" + str(folder_name[i]) + "/"
+            path2 = "KP/" + str(folder_name[i])
+            with os.scandir(path2) as entries:
+                for entry in entries:
+                    print(entry.name)
+                    kp_name.append(entry.name)
 
-#img1 = cv2.imread('flower.jpg', 0)
-#img2 = cv2.imread('14.jpg', 0)
+            for j in kp_name:
+                good = []
 
+                des2 = np.loadtxt(path + str(j)).astype('float32')
+                match_found = kpmatching(des1, des2, i, len(des1))
 
-#kp1, des1 = pysift.computeKeypointsAndDescriptors(img1)
-#kp2, des2 = pysift.computeKeypointsAndDescriptors(img2)
-
-
-des1 = np.loadtxt("KP/Faces_easy_image_0001.txt").astype('float32')
-
-
-
-
-#print(des1)
-#print(len(des1))
-
-with os.scandir('KP') as entries:
-    for entry in entries:
-        # print(entry.name)
-        kp_name.append(entry.name)
-
-for i in kp_name:
-    good=[]
-    des2 = np.loadtxt("KP/" + str(i)).astype('float32')
-    matches = kpmatching(des1,des2,i)
-
-
-print(matches)
-
+            return match_found
+"""
 
 """
 #print(len(good))
@@ -72,8 +122,6 @@ if len(good) > MIN_MATCH_COUNT:
 else:
     print("Not enough matches are found. Total matches found are: " + str(len(good)) + " Minimum match count is: " + str(MIN_MATCH_COUNT)  )
 """
-
-
 
 """
 if len(good) > MIN_MATCH_COUNT:
@@ -117,24 +165,6 @@ else:
 
 
 """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 """
 im=cv2.imread("flower.jpg")
